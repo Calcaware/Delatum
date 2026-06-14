@@ -1,0 +1,386 @@
+; example.tw
+; Delatum example program
+;
+; Demonstrates:
+;   - Alloc for string buffers
+;   - CLI argument reading
+;   - File I/O
+;   - Manual routines via jmp/@253
+;   - Include library usage
+;   - Indirect addressing
+;
+; Usage:
+;   delatum run example.tw [filename]
+
+include "example.twi"
+
+; Allocate a reusable string buffer (store base in @210, outside buffer range)
+alloc 256 @210
+
+; ------------------------------------------------------------
+; Print argument count
+; ------------------------------------------------------------
+
+mov @210 @250
+set  65 @[@250]
+add @250 1 @250
+set 114 @[@250]
+add @250 1 @250
+set 103 @[@250]
+add @250 1 @250
+set 117 @[@250]
+add @250 1 @250
+set 109 @[@250]
+add @250 1 @250
+set 101 @[@250]
+add @250 1 @250
+set 110 @[@250]
+add @250 1 @250
+set 116 @[@250]
+add @250 1 @250
+set 115 @[@250]
+add @250 1 @250
+set  58 @[@250]
+add @250 1 @250
+set  32 @[@250]
+add @250 1 @250
+set   0 @[@250]
+
+mov @210 @250
+set return_after_arglabel @253
+jmp print_str
+
+label return_after_arglabel
+mov @0 @255
+set return_after_argc @253
+jmp print_num
+
+label return_after_argc
+set return_after_newline1 @253
+jmp print_newline
+
+label return_after_newline1
+
+; ------------------------------------------------------------
+; Print first argument or "No arguments given."
+; ------------------------------------------------------------
+
+jeq @0 0 no_args
+
+mov @210 @250
+set  70 @[@250]
+add @250 1 @250
+set 105 @[@250]
+add @250 1 @250
+set 114 @[@250]
+add @250 1 @250
+set 115 @[@250]
+add @250 1 @250
+set 116 @[@250]
+add @250 1 @250
+set  32 @[@250]
+add @250 1 @250
+set  97 @[@250]
+add @250 1 @250
+set 114 @[@250]
+add @250 1 @250
+set 103 @[@250]
+add @250 1 @250
+set 117 @[@250]
+add @250 1 @250
+set 109 @[@250]
+add @250 1 @250
+set 101 @[@250]
+add @250 1 @250
+set 110 @[@250]
+add @250 1 @250
+set 116 @[@250]
+add @250 1 @250
+set  58 @[@250]
+add @250 1 @250
+set  32 @[@250]
+add @250 1 @250
+set   0 @[@250]
+
+mov @210 @250
+set return_after_arglabel2 @253
+jmp print_str
+
+label return_after_arglabel2
+set 1 @250
+set return_after_arg1 @253
+jmp print_str
+
+label return_after_arg1
+set return_after_newline2 @253
+jmp print_newline
+
+label return_after_newline2
+jmp args_done
+
+label no_args
+mov @210 @250
+set  78 @[@250]
+add @250 1 @250
+set 111 @[@250]
+add @250 1 @250
+set  32 @[@250]
+add @250 1 @250
+set  97 @[@250]
+add @250 1 @250
+set 114 @[@250]
+add @250 1 @250
+set 103 @[@250]
+add @250 1 @250
+set 117 @[@250]
+add @250 1 @250
+set 109 @[@250]
+add @250 1 @250
+set 101 @[@250]
+add @250 1 @250
+set 110 @[@250]
+add @250 1 @250
+set 116 @[@250]
+add @250 1 @250
+set 115 @[@250]
+add @250 1 @250
+set  32 @[@250]
+add @250 1 @250
+set 103 @[@250]
+add @250 1 @250
+set 105 @[@250]
+add @250 1 @250
+set 118 @[@250]
+add @250 1 @250
+set 101 @[@250]
+add @250 1 @250
+set 110 @[@250]
+add @250 1 @250
+set  46 @[@250]
+add @250 1 @250
+set   0 @[@250]
+
+mov @210 @250
+set return_after_noargs @253
+jmp print_str
+
+label return_after_noargs
+set return_after_newline3 @253
+jmp print_newline
+
+label return_after_newline3
+
+label args_done
+
+; ------------------------------------------------------------
+; Print greeting
+; ------------------------------------------------------------
+
+mov @210 @250
+set  68 @[@250]
+add @250 1 @250
+set 101 @[@250]
+add @250 1 @250
+set 108 @[@250]
+add @250 1 @250
+set  97 @[@250]
+add @250 1 @250
+set 116 @[@250]
+add @250 1 @250
+set 117 @[@250]
+add @250 1 @250
+set 109 @[@250]
+add @250 1 @250
+set  32 @[@250]
+add @250 1 @250
+set 101 @[@250]
+add @250 1 @250
+set 120 @[@250]
+add @250 1 @250
+set  97 @[@250]
+add @250 1 @250
+set 109 @[@250]
+add @250 1 @250
+set 112 @[@250]
+add @250 1 @250
+set 108 @[@250]
+add @250 1 @250
+set 101 @[@250]
+add @250 1 @250
+set  32 @[@250]
+add @250 1 @250
+set 112 @[@250]
+add @250 1 @250
+set 114 @[@250]
+add @250 1 @250
+set 111 @[@250]
+add @250 1 @250
+set 103 @[@250]
+add @250 1 @250
+set 114 @[@250]
+add @250 1 @250
+set  97 @[@250]
+add @250 1 @250
+set 109 @[@250]
+add @250 1 @250
+set   0 @[@250]
+
+mov @210 @250
+set return_after_greet @253
+jmp print_str
+
+label return_after_greet
+set return_after_newline4 @253
+jmp print_newline
+
+label return_after_newline4
+
+; ------------------------------------------------------------
+; Read and print a file if argc > 0
+; ------------------------------------------------------------
+
+jeq @0 0 skip_file
+
+mov @210 @250
+set  82 @[@250]
+add @250 1 @250
+set 101 @[@250]
+add @250 1 @250
+set  97 @[@250]
+add @250 1 @250
+set 100 @[@250]
+add @250 1 @250
+set 105 @[@250]
+add @250 1 @250
+set 110 @[@250]
+add @250 1 @250
+set 103 @[@250]
+add @250 1 @250
+set  32 @[@250]
+add @250 1 @250
+set 102 @[@250]
+add @250 1 @250
+set 105 @[@250]
+add @250 1 @250
+set 108 @[@250]
+add @250 1 @250
+set 101 @[@250]
+add @250 1 @250
+set  58 @[@250]
+add @250 1 @250
+set  32 @[@250]
+add @250 1 @250
+set   0 @[@250]
+
+mov @210 @250
+set return_before_file @253
+jmp print_str
+
+label return_before_file
+set 1 @250
+set return_after_filename @253
+jmp print_str
+
+label return_after_filename
+set return_after_newline5 @253
+jmp print_newline
+
+label return_after_newline5
+
+open 0 1 @200
+
+alloc 65536 @201
+mov @201 @202
+
+label read_loop
+    getc @200 @[@201]
+    jeq @[@201] -1 read_done
+    add @201 1 @201
+    jmp read_loop
+
+label read_done
+set 0 @[@201]
+close @200
+
+mov @210 @250
+set  70 @[@250]
+add @250 1 @250
+set 105 @[@250]
+add @250 1 @250
+set 108 @[@250]
+add @250 1 @250
+set 101 @[@250]
+add @250 1 @250
+set  32 @[@250]
+add @250 1 @250
+set  99 @[@250]
+add @250 1 @250
+set 111 @[@250]
+add @250 1 @250
+set 110 @[@250]
+add @250 1 @250
+set 116 @[@250]
+add @250 1 @250
+set 101 @[@250]
+add @250 1 @250
+set 110 @[@250]
+add @250 1 @250
+set 116 @[@250]
+add @250 1 @250
+set 115 @[@250]
+add @250 1 @250
+set  58 @[@250]
+add @250 1 @250
+set   0 @[@250]
+
+mov @210 @250
+set return_after_filelabel @253
+jmp print_str
+
+label return_after_filelabel
+set return_after_newline6 @253
+jmp print_newline
+
+label return_after_newline6
+
+mov @202 @250
+set return_after_fileprint @253
+jmp print_str
+
+label return_after_fileprint
+set return_after_newline7 @253
+jmp print_newline
+
+label return_after_newline7
+jmp skip_file
+
+label skip_file
+
+; ------------------------------------------------------------
+; Done
+; ------------------------------------------------------------
+
+mov @210 @250
+set  68 @[@250]
+add @250 1 @250
+set 111 @[@250]
+add @250 1 @250
+set 110 @[@250]
+add @250 1 @250
+set 101 @[@250]
+add @250 1 @250
+set  46 @[@250]
+add @250 1 @250
+set   0 @[@250]
+
+mov @210 @250
+set return_after_done @253
+jmp print_str
+
+label return_after_done
+set return_after_newline8 @253
+jmp print_newline
+
+label return_after_newline8
+
+halt 0

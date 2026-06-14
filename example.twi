@@ -1,0 +1,105 @@
+; example.twi
+; Delatum standard string utilities
+; Include this file to get common string operations
+;
+; Convention:
+;   @200-@209 = print_num digit buffer
+;   @250 = general purpose pointer A
+;   @251 = general purpose pointer B
+;   @252 = general purpose counter
+;   @253 = return address for manual routines
+;   @254 = scratch cell
+;   @255 = last result / return value
+;
+; Usage:
+;   include "example.twi"
+
+; ------------------------------------------------------------
+; print_str
+; Prints a null terminated string to stdout
+; Before calling: set @250 to address of first char
+; Usage:
+;   set <addr> @250
+;   set <return_label_offset> @253
+;   jmp print_str
+; ------------------------------------------------------------
+
+label print_str
+    jeq @[@250] 0 print_str_done ; stop at null terminator
+    putc 1 @[@250]              ; print char at pointer
+    add @250 1 @250             ; advance pointer
+    jmp print_str
+
+label print_str_done
+    jmp @253                    ; return to caller
+
+; ------------------------------------------------------------
+; print_num
+; Prints a positive integer in @255 to stdout as decimal digits
+; Before calling: set @255 to the number, @253 to return address
+; Note: only handles non-negative integers
+; Usage:
+;   set <number> @255
+;   set <return_offset> @253
+;   jmp print_num
+; ------------------------------------------------------------
+
+label print_num
+    jeq @255 0 print_zero       ; handle zero specially
+
+    set 0 @252                  ; digit count = 0
+    set 200 @250                ; point to digit buffer at cell 200
+
+label print_num_extract
+    jeq @255 0 print_num_print  ; done extracting
+    mod @255 10 @254            ; @254 = last digit
+    add @254 48 @254            ; convert to ASCII
+    mov @254 @[@250]            ; store digit
+    add @250 1 @250             ; advance buffer
+    add @252 1 @252             ; count++
+    div @255 10 @255            ; shift number right
+    jmp print_num_extract
+
+label print_num_print           ; digits are reversed, print backwards
+    jeq @252 0 print_num_done
+    sub @250 1 @250             ; back up pointer
+    putc 1 @[@250]              ; print digit
+    sub @252 1 @252             ; count--
+    jmp print_num_print
+
+label print_num_done
+    jmp @253
+
+label print_zero
+    putc 1 48                   ; print '0'
+    jmp @253
+
+; ------------------------------------------------------------
+; str_len
+; Counts length of null terminated string
+; Before calling: set @250 to address of string
+; Result in @255
+; ------------------------------------------------------------
+
+label str_len
+    set 0 @255                  ; length = 0
+    mov @250 @251               ; copy pointer
+
+label str_len_loop
+    jeq @[@251] 0 str_len_done
+    add @255 1 @255             ; length++
+    add @251 1 @251             ; advance pointer
+    jmp str_len_loop
+
+label str_len_done
+    jmp @253
+
+; ------------------------------------------------------------
+; print_newline
+; Prints a newline to stdout
+; Before calling: set @253 to return address
+; ------------------------------------------------------------
+
+label print_newline
+    putc 1 10                   ; ASCII 10 = newline
+    jmp @253

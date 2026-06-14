@@ -1,0 +1,17 @@
+include "example.twi"
+
+; Allocate buffer and write "Hi" via advancing pointer
+alloc 256 @210              ; @210 = buffer base (safe - below buffer)
+mov @210 @250               ; @250 = write pointer
+
+set  72 @[@250]             ; 'H'
+add @250 1 @250
+set 105 @[@250]             ; 'i'
+add @250 1 @250
+set   0 @[@250]             ; null terminator
+
+mov @210 @250               ; reset @250 to start of string
+set return_after @253
+jmp print_str
+label return_after
+halt 0
