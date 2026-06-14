@@ -167,12 +167,14 @@ Labels are assembler-time only. The assembler resolves them to byte offsets in t
 
 `jmp @0` jumps to the byte offset stored in cell 0. This is how routines return - store the return offset in a cell before jumping, jump back to it at the end.
 
-#### Halt (`40-4F`)
+#### Halt & Special (`40-4F`)
 
 ```
 halt                ; exit with code 0
 halt @0             ; exit with code stored in @0
 halt 0              ; exit with literal code 0
+
+len @0              ; @0 = total number of cells on the tape
 ```
 
 A program also halts naturally when execution reaches the end of the bytecode.
@@ -411,11 +413,12 @@ opcode (1 byte) + N operands (5 bytes each)
 | `35` | `jle` | 3 | jump if less than or equal |
 | `36` | `jge` | 3 | jump if greater than or equal |
 
-#### Halt (`40-4F`)
+#### Halt & Special (`40-4F`)
 
 | Opcode | Mnemonic | Operands | Description |
 |--------|----------|----------|-------------|
 | `40` | `halt` | 1 | halt with exit code |
+| `4F` | `len` | 1 | store total tape cell count in dst |
 
 #### I/O (`50-5F`)
 

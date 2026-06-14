@@ -118,6 +118,11 @@ halt @0             ; exit with code in @0
 halt 1              ; exit with literal code
 ```
 
+### Special
+```
+len @0              ; @0 = total number of cells on the tape
+```
+
 ### I/O
 ```
 putc 1 @0           ; write low byte of @0 to fd 1 (stdout)
@@ -136,12 +141,14 @@ close @0            ; close handle
 There is no `call` or `ret`. Store a return address manually and jump back to it:
 
 ```
-set 0 @ret          ; @ret = byte offset to return to (assembler fills this)
+set after @0        ; @0 = byte offset to return to
 jmp myroutine
 
 label myroutine
 ; ... do work ...
-jmp @ret            ; return
+jmp @0              ; return
+
+label after
 ```
 
 Nested calls require a manual call stack in tape cells. This is intentional.

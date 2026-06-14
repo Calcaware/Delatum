@@ -97,11 +97,12 @@ Every operand is exactly 5 bytes:
 | `35` | `jle` | 3 | jump if op1 <= op2, target=op3 |
 | `36` | `jge` | 3 | jump if op1 >= op2, target=op3 |
 
-### Halt `40-4F`
+### Halt & Special `40-4F`
 
 | Hex | Mnemonic | Operands | Notes |
 |-----|----------|----------|-------|
 | `40` | `halt` | 1 | exit with code op1 |
+| `4F` | `len` | 1 | dst=op1, stores total tape cell count |
 
 ### I/O `50-5F`
 
