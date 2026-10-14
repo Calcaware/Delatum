@@ -3,7 +3,7 @@
 
 Delatum is a minimal assembly-style virtual machine language. It takes the core idea of brainfuck - a tape, simple operations, nothing else - and makes it actually usable without losing the spirit. You can write real programs. It just requires you to think carefully about memory.
 
-The tape is the only storage. There is no heap, no call stack, no symbol table at runtime. Programs are assembled to bytecode, loaded onto the tape, and executed directly from it. The interpreter is trivial to implement in any language.
+The tape is the only data storage. There is no heap, no call stack, and no symbol table at runtime. Programs are assembled to bytecode, which the virtual machine executes from a separate code array. The interpreter is intentionally small and easy to reimplement in another language.
 
 ---
 
@@ -17,32 +17,31 @@ The tape is the only storage. There is no heap, no call stack, no symbol table a
 
 ---
 
-## The `tw` Tool
+## The `delatum` Tool
 
 ```bash
-tw -i source.tw -o program.twb    # assemble to bytecode file
-tw -r source.tw                    # assemble in memory and run immediately
-./program.twb                      # run bytecode directly (after OS registration)
-./source.tw                        # assemble and run (after OS registration)
+delatum build source.tw              # assemble to source.twb
+delatum run source.tw [args...]      # assemble in memory and run immediately
+./program.twb                        # run bytecode directly
+delatum program.twb [args...]        # run bytecode directly
+./source.tw                          # assemble in memory and run
 ```
 
-`.twi` files cannot be run directly.
+`.twi` files are include libraries. They are not normally entry points, but the tool will assemble and run one if asked.
 
 ---
 
 ## The Tape
 
-A flat array of signed integers. Platform native size, minimum 32-bit. The tape is the tapeworm. Each cell is a segment.
+A flat array of signed 64-bit integers (Go `int64` in this implementation). The tape is the tapeworm. Each cell is a segment.
 
-**Default size:** argc/argv area + bytecode length + (bytecode length × 2) working space
+**Default size:** argc/argv area plus 256 cells of working space
 
 **Tape layout at startup:**
 ```
 @0        = argc
 @1...     = argv strings, null terminated, packed back to back
-@n        = bytecode length in bytes
-@n+1...   = bytecode
-(free memory starts after bytecode - use alloc to grow the tape)
+(free memory starts after the last argv string - use alloc to grow the tape)
 ```
 
 ---
@@ -113,9 +112,10 @@ jge @0 @1 myloop    ; jump if @0 >= @1
 
 ### Halt
 ```
-halt                ; exit 0
+halt                ; exit with code 0
+halt 0              ; exit with code 0
 halt @0             ; exit with code in @0
-halt 1              ; exit with literal code
+halt 1              ; exit with literal code 1
 ```
 
 ### Special
@@ -169,9 +169,8 @@ Assembler only. The contents of the included file are inlined at that point. Inc
 
 All errors halt the program immediately with a message:
 
-- Integer overflow
+- Integer overflow on `add`, `sub`, and `mul`
 - Division by zero
-- `putc` out of valid character range
 - Invalid file descriptor
 - Tape address out of bounds
 - Allocation failure
@@ -183,8 +182,8 @@ All errors halt the program immediately with a message:
 
 ### Linux
 ```bash
-echo ':twb:M::TWORM::/usr/bin/tw:' > /proc/sys/fs/binfmt_misc/register
-echo ':tw:E::tw::/usr/bin/tw:' > /proc/sys/fs/binfmt_misc/register
+echo ':twb:M::TWORM::/usr/bin/delatum:' > /proc/sys/fs/binfmt_misc/register
+echo ':tw:E::tw::/usr/bin/delatum:' > /proc/sys/fs/binfmt_misc/register
 chmod +x program.twb && ./program.twb
 ```
 

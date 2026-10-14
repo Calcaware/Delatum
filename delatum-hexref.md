@@ -16,9 +16,7 @@
 ```
 @0        = argc
 @1...     = argv strings, null terminated
-@n        = bytecode length in bytes
-@n+1...   = bytecode
-(free memory starts after bytecode)
+(free memory starts after the last argv string)
 ```
 
 ---
@@ -108,7 +106,7 @@ Every operand is exactly 5 bytes:
 
 | Hex | Mnemonic | Operands | Notes |
 |-----|----------|----------|-------|
-| `50` | `putc` | 2 | fd=op1, char=op2, outputs op2 & 0xFF |
+| `50` | `putc` | 2 | fd=op1, char=op2, writes low 8 bits |
 | `51` | `getc` | 2 | fd=op1, dst=op2, -1 on EOF |
 | `52` | `open` | 3 | mode, filename (cell/indirect), handle_dest |
 | `53` | `close` | 1 | fd=op1 |

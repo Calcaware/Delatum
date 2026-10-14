@@ -41,7 +41,7 @@ func (t *Tape) Alloc(size int64) (int64, error) {
 	return start, nil
 }
 
-func (t *Tape) ReadByte(addr int64) (byte, error) {
+func (t *Tape) ReadByteAt(addr int64) (byte, error) {
 	v, err := t.Read(addr)
 	if err != nil {
 		return 0, err
@@ -50,19 +50,19 @@ func (t *Tape) ReadByte(addr int64) (byte, error) {
 }
 
 func (t *Tape) ReadInt32(addr int64) (int32, error) {
-	b0, err := t.ReadByte(addr)
+	b0, err := t.ReadByteAt(addr)
 	if err != nil {
 		return 0, err
 	}
-	b1, err := t.ReadByte(addr + 1)
+	b1, err := t.ReadByteAt(addr + 1)
 	if err != nil {
 		return 0, err
 	}
-	b2, err := t.ReadByte(addr + 2)
+	b2, err := t.ReadByteAt(addr + 2)
 	if err != nil {
 		return 0, err
 	}
-	b3, err := t.ReadByte(addr + 3)
+	b3, err := t.ReadByteAt(addr + 3)
 	if err != nil {
 		return 0, err
 	}

@@ -108,6 +108,7 @@ func runSource(path string, args []string) {
 		fmt.Fprintf(os.Stderr, "runtime error: %v\n", err)
 		os.Exit(1)
 	}
+	os.Exit(vm.ExitCode)
 }
 
 func buildSource(path string) {
@@ -168,6 +169,7 @@ func runBytecode(path string, args []string) {
 		fmt.Fprintf(os.Stderr, "runtime error: %v\n", err)
 		os.Exit(1)
 	}
+	os.Exit(vm.ExitCode)
 }
 
 func installHooks() {

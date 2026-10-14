@@ -96,11 +96,12 @@ var operandCounts = [256]int{
 }
 
 type VM struct {
-	tape *Tape
-	code []byte
-	ip   int64
-	fds  []*os.File
-	halt bool
+	tape     *Tape
+	code     []byte
+	ip       int64
+	fds      []*os.File
+	halt     bool
+	ExitCode int
 }
 
 func NewVM(bytecode []byte, args []string) (*VM, error) {
@@ -143,6 +144,14 @@ func NewVM(bytecode []byte, args []string) (*VM, error) {
 
 func (vm *VM) Run() error {
 	for !vm.halt {
+		if vm.ip < 0 {
+			return fmt.Errorf("program counter out of bounds: %d", vm.ip)
+		}
+		if vm.ip >= int64(len(vm.code)) {
+			// Reaching the end of the bytecode terminates the program.
+			vm.halt = true
+			return nil
+		}
 		if err := vm.step(); err != nil {
 			return err
 		}
@@ -408,7 +417,7 @@ func (vm *VM) step() error {
 		if exitCode < 0 || exitCode > 255 {
 			exitCode = 1
 		}
-		os.Exit(exitCode)
+		vm.ExitCode = exitCode
 		return nil
 
 	case opPutc:
@@ -454,7 +463,7 @@ func (vm *VM) step() error {
 		if err != nil {
 			return fmt.Errorf("open: %w", err)
 		}
-		filenameAddr, err := vm.readValue(vm.ip + 6)
+		filenameAddr, err := vm.readAddr(vm.ip + 6)
 		if err != nil {
 			return fmt.Errorf("open: %w", err)
 		}
@@ -466,7 +475,7 @@ func (vm *VM) step() error {
 		var filename string
 		ptr := filenameAddr
 		for {
-			ch, err := vm.tape.ReadByte(ptr)
+			ch, err := vm.tape.ReadByteAt(ptr)
 			if err != nil {
 				return fmt.Errorf("open: %w", err)
 			}

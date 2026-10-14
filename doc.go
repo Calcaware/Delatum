@@ -65,12 +65,12 @@ var instructions = map[string]instructionDoc{
 	"and": {
 		Syntax:  "and <a> <b> <dst>",
 		Summary: "Bitwise AND. dst = a & b",
-		Example: "and @100 0xFF @200  ; mask low byte",
+		Example: "and @100 255 @200   ; mask low byte",
 	},
 	"or": {
 		Syntax:  "or <a> <b> <dst>",
 		Summary: "Bitwise OR. dst = a | b",
-		Example: "or @100 0x100 @200  ; set bit 8",
+		Example: "or @100 256 @200    ; set bit 8",
 	},
 	"xor": {
 		Syntax:  "xor <a> <b> <dst>",
@@ -103,8 +103,8 @@ var instructions = map[string]instructionDoc{
 		Example: "len @100            ; @100 = total tape cell count",
 	},
 	"jmp": {
-		Syntax:  "jmp <label>",
-		Summary: "Unconditional jump to a label.",
+		Syntax:  "jmp <label|addr>",
+		Summary: "Unconditional jump to a label or byte offset.",
 		Example: "label start         ; define label\n    jmp start        ; jump back to start",
 	},
 	"jeq": {
@@ -138,7 +138,7 @@ var instructions = map[string]instructionDoc{
 		Example: "jge @100 0 ge       ; if @100 >= 0, jump to ge",
 	},
 	"halt": {
-		Syntax:  "halt <code>",
+		Syntax:  "halt [code]",
 		Summary: "Stop execution with an exit code (0-255). Equivalent to sys_exit.",
 		Example: "halt 0              ; exit successfully\nhalt 1              ; exit with error",
 	},
@@ -232,7 +232,7 @@ func docAll() {
 	fmt.Println()
 	fmt.Println("  <label> can be any name defined with: label <name>")
 	fmt.Println()
-	fmt.Println("BUILT-IN REGISTERS")
+	fmt.Println("CONVENTIONS (BY EXAMPLE PROGRAMS)")
 	fmt.Println()
 	fmt.Println("  @0             argument count (argc)")
 	fmt.Println("  @1+            argument strings (argv), each null-terminated")

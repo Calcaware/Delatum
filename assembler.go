@@ -87,6 +87,11 @@ func Assemble(path string) ([]byte, error) {
 			return nil, fmt.Errorf("line %d: unknown opcode %q", ln.lineNum, ln.opcode)
 		}
 
+		// Allow the documented shorthand "halt" without an explicit exit code.
+		if ln.opcode == "halt" && len(ln.operands) == 0 {
+			ln.operands = []string{"0"}
+		}
+
 		if len(ln.operands) != def.nops {
 			return nil, fmt.Errorf("line %d: %s expects %d operands, got %d",
 				ln.lineNum, ln.opcode, def.nops, len(ln.operands))

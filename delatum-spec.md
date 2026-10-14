@@ -18,13 +18,13 @@ Delatum is a minimal assembly-style virtual machine language. The tape is the on
 One tool handles everything:
 
 ```
-tw -i source.tw -o program.twb    ; assemble source to bytecode file
-tw -r source.tw                    ; assemble in memory and run immediately, no file written
-./program.twb                      ; OS invokes tw, verify header, load tape, run
-./source.tw                        ; OS invokes tw, assemble in memory and run (equivalent to -r)
+delatum build source.tw            ; assemble source to bytecode file
+delatum run source.tw [args...]    ; assemble in memory and run immediately, no file written
+./program.twb                      ; OS invokes delatum, verify header, run bytecode
+./source.tw                        ; OS invokes delatum, assemble in memory and run
 ```
 
-`.twi` files are include libraries. They cannot be run directly - `tw` will error if invoked on a `.twi` file. Only `.tw` and `.twb` are registered with the OS for execution.
+`.twi` files are include libraries. They are not normally entry points, but `delatum` will assemble and run one if asked. Only `.tw` and `.twb` are intended to be registered with the OS for execution.
 
 The `TWORM` header exists only in `.twb` files. In-memory assembly skips the header entirely - bytecode goes straight onto the tape.
 
@@ -35,7 +35,7 @@ The `TWORM` header exists only in `.twb` files. In-memory assembly skips the hea
 The tape is a flat array of signed integers - the only memory in the system.
 
 - **Cell size:** Platform native signed integer, minimum 32-bit
-- **Default size:** argc/argv area + bytecode length + (bytecode length × 2) for working space
+- **Default size:** argc/argv area plus 256 cells of working space (see Implementation Notes)
 - **Runtime allocation:** `alloc N @0` grows the tape by N cells, stores start index of new cells in @0, halts on failure
 - **Overflow:** Any arithmetic or assignment that exceeds cell size is a runtime error
 - **Endianness:** Matches host platform
@@ -49,12 +49,10 @@ Each cell is a **segment**. The tape is the **tapeworm**.
 ```
 @0          = argc
 @1...       = argv strings, null terminated, packed back to back
-@n          = bytecode length in bytes
-@n+1...     = bytecode
-(free memory starts after bytecode - use alloc to grow the tape)
+(free memory starts after the last argv string - use alloc to grow the tape)
 ```
 
-Free memory starts after the bytecode on the tape. There are no start/end marker cells - the bytecode length (`@n`) determines the boundary. `alloc` is the recommended way to reserve working space at runtime.
+Free memory starts after the argc/argv area in this implementation; `alloc` is the recommended way to reserve working space at runtime.
 
 ---
 
@@ -91,7 +89,7 @@ One instruction per line. Arguments are literals, `@n`, or `@[@n]`. Comments beg
 ### Includes
 
 ```
-include "file.tw"
+include "file.twi"
 ```
 
 The assembler inlines the contents of `file.tw` at the point of the include directive. The interpreter never sees include directives - they are resolved entirely at assembly time.
@@ -171,13 +169,14 @@ Labels are assembler-time only. The assembler resolves them to byte offsets in t
 
 ```
 halt                ; exit with code 0
+halt 0              ; exit with code 0
 halt @0             ; exit with code stored in @0
-halt 0              ; exit with literal code 0
+halt 1              ; exit with literal code 1
 
 len @0              ; @0 = total number of cells on the tape
 ```
 
-A program also halts naturally when execution reaches the end of the bytecode.
+A program halts implicitly when execution reaches the end of its bytecode. An explicit `halt` may also be used.
 
 #### I/O (`50-5F`)
 
@@ -196,7 +195,7 @@ close @0            ; close file handle
 2 = stderr
 ```
 
-`putc` outputs `@0 & 0xFF` - the low byte treated as unsigned. Values 0-255 are valid. Values outside this range are a runtime error. Unicode (0-1114111) is supported if the OS and implementation support it.
+`putc` writes the low 8 bits of its value (`value & 0xFF`). This implementation does not treat out-of-range values as an error.
 
 `getc` returns -1 on EOF. A null byte (0) in a file is a valid byte, not EOF.
 
@@ -239,9 +238,7 @@ The user is responsible for managing return addresses on the tape. Nested calls 
 
 The following are runtime errors. The interpreter halts with an error message identifying the failing instruction:
 
-- Integer overflow (arithmetic result exceeds cell size)
-- `set` of a value exceeding cell size
-- `putc` of a value outside valid character range
+- Integer overflow on `add`, `sub`, and `mul`
 - Division by zero
 - Invalid file descriptor
 - Tape address out of bounds
@@ -510,8 +507,8 @@ The label `loop` resolved to byte offset `0x96` (150) - the byte position of `pu
 Register `.tw` and `.twb` with the kernel:
 
 ```bash
-echo ':twb:M::TWORM::/usr/bin/tw:' > /proc/sys/fs/binfmt_misc/register
-echo ':tw:E::tw::/usr/bin/tw:' > /proc/sys/fs/binfmt_misc/register
+echo ':twb:M::TWORM::/usr/bin/delatum:' > /proc/sys/fs/binfmt_misc/register
+echo ':tw:E::tw::/usr/bin/delatum:' > /proc/sys/fs/binfmt_misc/register
 ```
 
 After registration:
