@@ -39,19 +39,19 @@ const (
 	opAshr byte = 0x25
 	opLshr byte = 0x26
 
-	opJmp  byte = 0x30
-	opJeq  byte = 0x31
-	opJne  byte = 0x32
-	opJlt  byte = 0x33
-	opJgt  byte = 0x34
-	opJle  byte = 0x35
-	opJge  byte = 0x36
+	opJmp byte = 0x30
+	opJeq byte = 0x31
+	opJne byte = 0x32
+	opJlt byte = 0x33
+	opJgt byte = 0x34
+	opJle byte = 0x35
+	opJge byte = 0x36
 
 	opHalt byte = 0x40
 
 	opLen byte = 0x4F
 
-	opPutc byte = 0x50
+	opPutc  byte = 0x50
 	opGetc  byte = 0x51
 	opOpen  byte = 0x52
 	opClose byte = 0x53

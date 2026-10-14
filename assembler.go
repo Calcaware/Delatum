@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/binary"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -326,7 +325,7 @@ func parseOperand(s string) (operand, bool) {
 func encodeOperand(typ byte, val int32) []byte {
 	buf := make([]byte, 5)
 	buf[0] = typ
-	binary.LittleEndian.PutUint32(buf[1:], uint32(val))
+	nativeEndian.PutUint32(buf[1:], uint32(val))
 	return buf
 }
 

@@ -15,16 +15,18 @@ Audit notes for the Delatum project. Items below are follow-ups found while revi
 
 ## Implementation
 
-- [ ] Rename `Tape.ReadByte` or adapt it to the `io.Reader` convention to clear `go vet`.
-- [ ] Make endianness consistent: `Assemble` currently emits little-endian operands while `NewVM` detects host endianness.
+- [x] Rename `Tape.ReadByte` to `Tape.ReadByteAt` to clear `go vet`.
+- [x] Make operand endianness consistent with the host platform.
 - [ ] Decide whether `putc` should validate character range and update docs accordingly.
 - [ ] Decide whether a bare `halt` and implicit halt at end-of-bytecode should be supported.
-- [ ] Add Go tests for assembly, VM execution, file I/O, includes, and error paths.
-- [ ] Add a build/test workflow and pin the Go version in `go.mod` if needed.
+- [x] Add Go tests for assembly, VM execution, file I/O, includes, and error paths.
+- [x] Add a GitHub Actions workflow for build, vet, and test.
 - [ ] Review the built-in "register" conventions (`@250`-`@255`) and ensure they are clearly documented as conventions only.
 
 ## Examples
+- [ ] Add a cross platform endian test using golden bytecode.
 - [ ] Add static analysis for unsafe self-modifying bytecode programs.
 
 - [ ] Verify and refresh `example.tw`, `example.twi`, and `test_inc.tw` after documentation changes.
+- [ ] Add Windows and macOS CI runners.
 - [ ] Add a minimal "hello world" example that uses `halt`.
