@@ -175,6 +175,9 @@ All errors halt the program immediately with a message:
 - Tape address out of bounds
 - Allocation failure
 - Circular include (assembler)
+- Unknown opcode (corrupt bytecode)
+
+Reaching the end of the bytecode is not an error. Execution simply stops there and the program exits with code 0. Use `halt` when you want an explicit exit code.
 
 ---
 
@@ -188,10 +191,10 @@ chmod +x program.twb && ./program.twb
 ```
 
 ### macOS
-Register `.tw` and `.twb` with Launch Services pointing to `tw`.
+Register `.tw` and `.twb` with Launch Services pointing to `delatum`.
 
 ### Windows
-Associate `.tw` and `.twb` with `tw.exe` in the registry.
+Associate `.tw` and `.twb` with `delatum.exe` in the registry.
 
 ---
 

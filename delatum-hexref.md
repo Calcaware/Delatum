@@ -149,13 +149,13 @@ Every operand is exactly 5 bytes:
 
 ## Quick Example - `jne @[@0] 0 offset`
 
-Jump back to byte offset 150 (0x96) if indirect cell 0 is not 0:
+Jump back to byte offset 165 (0xA5) if indirect cell 0 is not 0:
 
 ```
 32                    opcode: jne
 02 00 00 00 00        operand 1: indirect @[@0]
 00 00 00 00 00        operand 2: literal 0
-00 00 00 00 96        operand 3: literal 0x96 (byte offset 150)
+00 A5 00 00           operand 3: literal 0xA5 (byte offset 165)
 ```
 
 16 bytes total.
@@ -169,4 +169,4 @@ Jump back to byte offset 150 (0x96) if indirect cell 0 is not 0:
 - Jump targets are **byte offsets** from the start of the bytecode (after the 6 byte header)
 - Recalculate all jump targets after inserting or removing instructions
 - Write filename to tape with `set` before calling `open` - no inline strings in bytecode
-- Little endian systems store `0x00000096` as `96 00 00 00`- know your platform
+- Operand values follow the byte order of the host - a little endian host stores `0x000000A5` as `A5 00 00 00`, a big endian host stores it as `00 00 00 A5`

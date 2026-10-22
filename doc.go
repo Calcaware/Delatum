@@ -20,12 +20,12 @@ var instructions = map[string]instructionDoc{
 	"set": {
 		Syntax:  "set <val> <dst>",
 		Summary: "Store a value into a tape cell. dst = val",
-		Example: "set 42 @100      ; write literal 42 to cell 100\nset @200 @100    ; copy cell 200 into cell 100\nset @[@300] @100 ; copy cell pointed-to by cell 300 into cell 100",
+		Example: "set 42 @100      ; write literal 42 to cell 100\nset @120 @100    ; copy cell 120 into cell 100\nset @[@130] @100 ; copy cell pointed-to by cell 130 into cell 100",
 	},
 	"mov": {
 		Syntax:  "mov <src> <dst>",
 		Summary: "Copy a value from one cell to another. dst = src",
-		Example: "mov @200 @300   ; copy value from cell 200 to cell 300\nmov 99 @400     ; store literal 99 in cell 400",
+		Example: "mov @120 @130   ; copy value from cell 120 to cell 130\nmov 99 @140     ; store literal 99 in cell 140",
 	},
 	"alloc": {
 		Syntax:  "alloc <size> <dst>",
@@ -211,9 +211,14 @@ func docAll() {
 	fmt.Println()
 	fmt.Println("DIRECTIVES")
 	fmt.Println()
-	for n, d := range directives {
+	directiveNames := make([]string, 0, len(directives))
+	for n := range directives {
+		directiveNames = append(directiveNames, n)
+	}
+	sort.Strings(directiveNames)
+	for _, n := range directiveNames {
+		d := directives[n]
 		fmt.Printf("  %-*s  %s\n", maxLen, d.Syntax, d.Summary)
-		_ = n
 	}
 
 	fmt.Println()

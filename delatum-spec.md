@@ -5,15 +5,15 @@
 
 ## Overview
 
-Delatum is a minimal assembly-style virtual machine language. The tape is the only storage. Programs are assembled to bytecode, loaded onto the tape, and executed directly from it.
+Delatum is a minimal assembly-style virtual machine language. The tape is the only storage. Programs are assembled to bytecode, which the virtual machine executes from a separate code array.
 
-- Tool: `tw`
+- Tool: `delatum`
 - Assembly extension: `.tw`
 - Include extension: `.twi`
 - Bytecode extension: `.twb`
 - Magic bytes: `TWORM` (see Bytecode Format)
 
-### The `tw` Tool
+### The `delatum` Tool
 
 One tool handles everything:
 
@@ -26,7 +26,7 @@ delatum run source.tw [args...]    ; assemble in memory and run immediately, no 
 
 `.twi` files are include libraries. They are not normally entry points, but `delatum` will assemble and run one if asked. Only `.tw` and `.twb` are intended to be registered with the OS for execution.
 
-The `TWORM` header exists only in `.twb` files. In-memory assembly skips the header entirely - bytecode goes straight onto the tape.
+The `TWORM` header exists only in `.twb` files. In-memory assembly skips the header entirely - the bytecode goes straight into the code array.
 
 ---
 
@@ -34,10 +34,10 @@ The `TWORM` header exists only in `.twb` files. In-memory assembly skips the hea
 
 The tape is a flat array of signed integers - the only memory in the system.
 
-- **Cell size:** Platform native signed integer, minimum 32-bit
+- **Cell size:** 64-bit signed integer
 - **Default size:** argc/argv area plus 256 cells of working space (see Implementation Notes)
 - **Runtime allocation:** `alloc N @0` grows the tape by N cells, stores start index of new cells in @0, halts on failure
-- **Overflow:** Any arithmetic or assignment that exceeds cell size is a runtime error
+- **Overflow:** `add`, `sub`, and `mul` report a runtime error when the result does not fit in a cell
 - **Endianness:** Matches host platform
 
 Each cell is a **segment**. The tape is the **tapeworm**.
@@ -92,7 +92,7 @@ One instruction per line. Arguments are literals, `@n`, or `@[@n]`. Comments beg
 include "file.twi"
 ```
 
-The assembler inlines the contents of `file.tw` at the point of the include directive. The interpreter never sees include directives - they are resolved entirely at assembly time.
+The assembler inlines the contents of `file.twi` at the point of the include directive. The interpreter never sees include directives - they are resolved entirely at assembly time.
 
 Included files may include other files. The assembler tracks the current include stack and throws an error if a circular include is detected:
 
@@ -181,11 +181,11 @@ A program halts implicitly when execution reaches the end of its bytecode. An ex
 #### I/O (`50-5F`)
 
 ```
-putc @fd @0         ; write low byte of @0 to file descriptor @fd
-getc @fd @0         ; read one byte from @fd into @0, -1 on EOF
-open 0 @100 @0      ; open file with mode 0 (read), handle in @0
-open @0 @1 @2       ; open file named by @1 with mode from @0, handle in @2
-close @0            ; close file handle
+putc 1 @0         ; write low byte of @0 to file descriptor 1
+getc 0 @0         ; read one byte from file descriptor 0 into @0, -1 on EOF
+open 0 @100 @0    ; open file with mode 0 (read), handle in @0
+open @0 @1 @2     ; open file named by @1 with mode from @0, handle in @2
+close @0          ; close file handle
 ```
 
 **Reserved file descriptors:**
@@ -222,12 +222,14 @@ There is no `call` or `ret`. Routines are a user convention:
 
 ```
 ; store return offset before jumping
-set 42 @0           ; @0 = return address (byte offset)
+set after @0        ; @0 = byte offset of the return point
 jmp myroutine
 
-; inside routine
-...
+label myroutine
+; ... do work ...
 jmp @0              ; jump back to stored return address
+
+label after
 ```
 
 The user is responsible for managing return addresses on the tape. Nested calls require the user to manage a manual call stack in tape cells.
@@ -242,6 +244,9 @@ The following are runtime errors. The interpreter halts with an error message id
 - Division by zero
 - Invalid file descriptor
 - Tape address out of bounds
+- Unknown opcode (corrupt bytecode)
+
+Reaching the end of the bytecode is not an error. Execution stops there and the program exits with code 0.
 
 ---
 
@@ -282,8 +287,8 @@ close @0
 set 10 @2               ; pointer to start of data
 
 label print
-putc 1 @[@2]            ; print char
 jeq @[@2] -1 done       ; stop on EOF marker
+putc 1 @[@2]            ; print char
 add @2 1 @2             ; advance pointer
 jmp print
 
@@ -312,15 +317,14 @@ close @5
 ### Manual routine with return address
 
 ```
-set 20 @0               ; store return offset in @0
-jmp myroutine           ; jump to routine
-
-label after             ; execution resumes here after routine
-...
+set after @0               ; store return offset in @0
+jmp myroutine               ; jump to routine
 
 label myroutine
-putc 1 65               ; print 'A'
-jmp @0                  ; return
+putc 1 65                   ; print 'A'
+jmp @0                      ; return
+
+label after                 ; execution resumes here after the routine
 ```
 
 ---
@@ -446,46 +450,48 @@ After string expansion and assembly (bytes in hex, comments added for clarity):
 54 57 4F 52 4D 01
 
 ; set 72 @1  (H)
-01  00 00000048  01 00000001
+01  00 48000000  01 01000000
 ; set 101 @2 (e)
-01  00 00000065  01 00000002
+01  00 65000000  01 02000000
 ; set 108 @3 (l)
-01  00 0000006C  01 00000003
+01  00 6C000000  01 03000000
 ; set 108 @4 (l)
-01  00 0000006C  01 00000004
+01  00 6C000000  01 04000000
 ; set 111 @5 (o)
-01  00 0000006F  01 00000005
+01  00 6F000000  01 05000000
 ; set 44  @6 (,)
-01  00 0000002C  01 00000006
+01  00 2C000000  01 06000000
 ; set 32  @7 ( )
-01  00 00000020  01 00000007
+01  00 20000000  01 07000000
 ; set 87  @8 (W)
-01  00 00000057  01 00000008
+01  00 57000000  01 08000000
 ; set 111 @9 (o)
-01  00 0000006F  01 00000009
+01  00 6F000000  01 09000000
 ; set 114 @10 (r)
-01  00 00000072  01 0000000A
+01  00 72000000  01 0A000000
 ; set 108 @11 (l)
-01  00 0000006C  01 0000000B
+01  00 6C000000  01 0B000000
 ; set 100 @12 (d)
-01  00 00000064  01 0000000C
+01  00 64000000  01 0C000000
 ; set 33  @13 (!)
-01  00 00000021  01 0000000D
+01  00 21000000  01 0D000000
 ; set 0   @14 (null)
-01  00 00000000  01 0000000E
+01  00 00000000  01 0E000000
 ; set 1 @0  (pointer = 1)
-01  00 00000001  01 00000000
+01  00 01000000  01 00000000
 
-; loop: (byte offset 0x96)
+; loop: (byte offset 0xA5)
 ; putc 1 @[@0]
-50  00 00000001  02 00000000
+50  00 01000000  02 00000000
 ; add @0 1 @0
-10  01 00000000  00 00000001  01 00000000
+10  01 00000000  00 01000000  01 00000000
 ; jne @[@0] 0 loop
-32  02 00000000  00 00000000  00 00000096
+32  02 00000000  00 00000000  00 A5000000
 ```
 
-The label `loop` resolved to byte offset `0x96` (150) - the byte position of `putc` in the bytecode stream.
+The label `loop` resolved to byte offset `0xA5` (165) - the byte position of `putc` in the bytecode stream.
+
+The operand values above are shown in little endian order, which is what a little endian host stores. A big endian host keeps the same values with the four value bytes reversed.
 
 ---
 
@@ -496,7 +502,7 @@ The label `loop` resolved to byte offset `0x96` (150) - the byte position of `pu
 - The assembler maintains a label table during assembly only - it is discarded after bytecode is emitted
 - File handles map to OS file descriptors; cursor tracking is delegated to the OS
 - Tape starts at a default size and can grow via `alloc`
-- Bytecode lives on the tape and can be overwritten at runtime - this is intentional and undefined in its consequences
+- Bytecode lives in a separate code array, not on the tape - a program cannot modify its own code
 
 ---
 
@@ -525,16 +531,16 @@ To make registration persistent across reboots, add to a systemd service or `/et
 
 ### macOS - Launch Services
 
-Register `.tw` and `.twb` as file types associated with `tw`. Double clicking either in Finder runs the program. `.twi` files are not registered.
+Register `.tw` and `.twb` as file types associated with `delatum`. Double clicking either in Finder runs the program. `.twi` files are not registered.
 
 ### Windows - File Association
 
 ```
 HKEY_CLASSES_ROOT\.twb = DelatumBytecode
-HKEY_CLASSES_ROOT\DelatumBytecode\shell\open\command = "C:\Program Files\tw\tw.exe" "%1"
+HKEY_CLASSES_ROOT\DelatumBytecode\shell\open\command = "C:\Program Files\delatum\delatum.exe" "%1"
 
 HKEY_CLASSES_ROOT\.tw = DelatumSource
-HKEY_CLASSES_ROOT\DelatumSource\shell\open\command = "C:\Program Files\tw\tw.exe" "-r" "%1"
+HKEY_CLASSES_ROOT\DelatumSource\shell\open\command = "C:\Program Files\delatum\delatum.exe" "%1"
 ```
 
-`.twi` files are not registered - they are include libraries only and cannot be executed directly.
+The tool recognises `.tw` sources and `.twb` bytecode on its own, so no extra flag is needed. `.twi` files are not registered - they are include libraries only and cannot be executed directly.
