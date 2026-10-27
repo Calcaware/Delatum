@@ -53,6 +53,8 @@ A flat array of signed 64-bit integers (Go `int64` in this implementation). The 
 @[@0]       ; value at cell whose address is stored in cell 0
 ```
 
+**Scratch convention:** Cells `@250`-`@255` are conventionally used as scratch registers by example programs. `@253` is commonly used as a return address for manual routines, and `@250`-`@252`, `@255` as caller/callee scratch. These are not reserved by the VM; any cells may be used freely.
+
 ---
 
 ## Instruction Format

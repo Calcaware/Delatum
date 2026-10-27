@@ -65,6 +65,8 @@ Free memory starts after the argc/argv area in this implementation; `alloc` is t
 
 If cell 0 contains 10, `@[@0]` is the value at cell 10. Either form can be used as an argument to any instruction. Nesting beyond one level of indirection is undefined behavior.
 
+**Scratch convention:** Cells `@250`-`@255` are conventionally used as scratch registers by example programs. `@253` is commonly used as a return address for manual routines, while `@250`-`@252` and `@255` serve as caller/callee scratch. These cells are not reserved by the VM and carry no special meaning at runtime.
+
 ---
 
 ## Assembly Language
