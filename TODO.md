@@ -23,7 +23,7 @@ Audit notes for the Delatum project. Items below are follow-ups found while revi
 - [x] Add Go tests for assembly, VM execution, file I/O, includes, and error paths.
 - [x] Add a GitHub Actions workflow for build, vet, and test.
 - [x] Review the built-in "register" conventions (`@250`-`@255`) and ensure they are clearly documented as conventions only.
-- [ ] Add tests for the command line paths (`build`, `run`, and running a `.twb` file) so the argument handling is covered as well.
+- [x] Add tests for the command line paths (`build`, `run`, and running a `.twb` file) so the argument handling is covered as well.
 
 ## Examples
 

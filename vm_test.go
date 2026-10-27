@@ -192,3 +192,102 @@ set 42 @10
 		t.Fatalf("natural termination failed: got %d", vm.tape.cells[10])
 	}
 }
+
+func TestCLIRunSource(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "test.tw")
+	src := "set 99 @5\nhalt 0\n"
+	if err := os.WriteFile(p, []byte(src), 0644); err != nil {
+		t.Fatal(err)
+	}
+	bc, err := Assemble(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	vm, err := NewVM(bc, []string{p})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := vm.Run(); err != nil {
+		t.Fatal(err)
+	}
+	if vm.tape.cells[5] != 99 {
+		t.Fatalf("expected 99 got %d", vm.tape.cells[5])
+	}
+}
+
+func TestCLIBuildAndRunBytecode(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "prog.tw")
+	src := "set 7 @3\nhalt 3\n"
+	if err := os.WriteFile(p, []byte(src), 0644); err != nil {
+		t.Fatal(err)
+	}
+	bc, err := Assemble(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := filepath.Join(dir, "prog.twb")
+	f, err := os.Create(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.Write([]byte("TWORM\x01")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.Write(bc); err != nil {
+		t.Fatal(err)
+	}
+	f.Close()
+	data, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(data) < 6 || string(data[:5]) != "TWORM" {
+		t.Fatal("bad bytecode header")
+	}
+	vm, err := NewVM(data[6:], []string{out})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := vm.Run(); err != nil {
+		t.Fatal(err)
+	}
+	if vm.ExitCode != 3 {
+		t.Fatalf("exit code: got %d want 3", vm.ExitCode)
+	}
+	if vm.tape.cells[3] != 7 {
+		t.Fatalf("expected 7 got %d", vm.tape.cells[3])
+	}
+}
+
+func TestCLIRunBytecodeDirect(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "prog.tw")
+	src := "halt 5\n"
+	if err := os.WriteFile(p, []byte(src), 0644); err != nil {
+		t.Fatal(err)
+	}
+	bc, err := Assemble(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := filepath.Join(dir, "prog.twb")
+	if err := os.WriteFile(out, append([]byte("TWORM\x01"), bc...), 0644); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	vm, err := NewVM(data[6:], []string{out, "x"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := vm.Run(); err != nil {
+		t.Fatal(err)
+	}
+	if vm.ExitCode != 5 {
+		t.Fatalf("exit code: got %d want 5", vm.ExitCode)
+	}
+}
