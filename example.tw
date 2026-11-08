@@ -12,10 +12,19 @@
 ; Usage:
 ;   delatum run example.tw [filename]
 
-include "example.twi"
-
 ; Allocate a reusable string buffer (store base in @210, outside buffer range)
 alloc 256 @210
+
+; argv[0] is the program path, so skip it to find the first user argument.
+set 1 @249
+
+label find_first_arg
+jeq @[@249] 0 first_arg_found
+add @249 1 @249
+jmp find_first_arg
+
+label first_arg_found
+add @249 1 @249
 
 ; ------------------------------------------------------------
 ; Print argument count
@@ -65,7 +74,7 @@ label return_after_newline1
 ; Print first argument or "No arguments given."
 ; ------------------------------------------------------------
 
-jeq @0 0 no_args
+jle @0 1 no_args
 
 mov @210 @250
 set  70 @[@250]
@@ -107,7 +116,7 @@ set return_after_arglabel2 @253
 jmp print_str
 
 label return_after_arglabel2
-set 1 @250
+mov @249 @250
 set return_after_arg1 @253
 jmp print_str
 
@@ -236,10 +245,10 @@ jmp print_newline
 label return_after_newline4
 
 ; ------------------------------------------------------------
-; Read and print a file if argc > 0
+; Read and print a file if a user argument was supplied
 ; ------------------------------------------------------------
 
-jeq @0 0 skip_file
+jle @0 1 skip_file
 
 mov @210 @250
 set  82 @[@250]
@@ -277,7 +286,7 @@ set return_before_file @253
 jmp print_str
 
 label return_before_file
-set 1 @250
+mov @249 @250
 set return_after_filename @253
 jmp print_str
 
@@ -287,7 +296,7 @@ jmp print_newline
 
 label return_after_newline5
 
-open 0 1 @200
+open 0 @[@249] @200
 
 alloc 65536 @201
 mov @201 @202
@@ -384,3 +393,7 @@ jmp print_newline
 label return_after_newline8
 
 halt 0
+
+; Library routines are included after the entry point so fall-through does not
+; execute them. Their labels remain visible to the whole program.
+include "example.twi"

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
@@ -68,5 +69,39 @@ func TestAssembleUnknownOpcode(t *testing.T) {
 	_, err := Assemble(p)
 	if err == nil {
 		t.Fatal("expected error for unknown opcode")
+	}
+}
+
+func TestAssembleIncludeAtDirective(t *testing.T) {
+	dir := t.TempDir()
+	writeSource(t, dir, "lib.twi", "set 1 @10\nhalt 0\n")
+	mainPath := writeSource(t, dir, "main.tw", "include \"lib.twi\"\nset 2 @10\nhalt 0\n")
+	inlinePath := writeSource(t, dir, "inline.tw", "set 1 @10\nhalt 0\nset 2 @10\nhalt 0\n")
+
+	got, err := Assemble(mainPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := Assemble(inlinePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, want) {
+		t.Fatal("include was not inlined at the directive")
+	}
+}
+
+func TestAssembleRepeatedInclude(t *testing.T) {
+	dir := t.TempDir()
+	writeSource(t, dir, "lib.twi", "set 1 @10\n")
+	mainPath := writeSource(t, dir, "main.tw", "include \"lib.twi\"\ninclude \"lib.twi\"\nhalt 0\n")
+
+	bc, err := Assemble(mainPath)
+	if err != nil {
+		t.Fatalf("repeated include should assemble: %v", err)
+	}
+	want := 2*(1+2*5) + (1 + 5)
+	if len(bc) != want {
+		t.Fatalf("bytecode length is %d, want %d", len(bc), want)
 	}
 }

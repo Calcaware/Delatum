@@ -19,6 +19,8 @@
 (free memory starts after the last argv string)
 ```
 
+`argv[0]` is the path used to start the program. The first user argument is the string after the first null terminator.
+
 ---
 
 ## Operand Encoding

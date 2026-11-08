@@ -241,6 +241,7 @@ func docAll() {
 	fmt.Println()
 	fmt.Println("  @0             argument count (argc)")
 	fmt.Println("  @1+            argument strings (argv), each null-terminated")
+	fmt.Println("                 argv[0] is the program path; user arguments follow")
 	fmt.Println("  @253           return address (callee should jump here)")
 	fmt.Println("  @250-@252      caller/callee scratch registers")
 	fmt.Println("  @255           general-purpose (used by example programs)")

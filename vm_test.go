@@ -149,6 +149,38 @@ halt 0
 	}
 }
 
+func TestConditionalJumpCellTarget(t *testing.T) {
+	vm, err := assembleAndRun(t, `
+set 0 @10
+set target @12
+jeq @10 @10 @12
+halt 1
+
+label target
+set 7 @20
+halt 0
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if vm.tape.cells[20] != 7 {
+		t.Fatalf("conditional jump did not use the cell target: got %d", vm.tape.cells[20])
+	}
+}
+
+func TestMulOverflowMinimumInt64(t *testing.T) {
+	sources := []string{
+		"set -1 @10\nset 1 @11\nshl @11 63 @11\nmul @10 @11 @12\nhalt 0\n",
+		"set 1 @10\nshl @10 63 @10\nset -1 @11\nmul @10 @11 @12\nhalt 0\n",
+	}
+	for _, src := range sources {
+		_, err := assembleAndRun(t, src)
+		if err == nil || !strings.Contains(err.Error(), "integer overflow") {
+			t.Fatalf("expected integer overflow, got %v", err)
+		}
+	}
+}
+
 func TestDivisionByZero(t *testing.T) {
 	_, err := assembleAndRun(t, `
 set 1 @10

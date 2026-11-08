@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 	"os"
 	"unsafe"
 )
@@ -339,7 +340,7 @@ func (vm *VM) step() error {
 		return nil
 
 	case opJeq:
-		a, b, target, err := vm.read3(vm.ip)
+		a, b, target, err := vm.readJump3(vm.ip)
 		if err != nil {
 			return err
 		}
@@ -349,7 +350,7 @@ func (vm *VM) step() error {
 		}
 
 	case opJne:
-		a, b, target, err := vm.read3(vm.ip)
+		a, b, target, err := vm.readJump3(vm.ip)
 		if err != nil {
 			return err
 		}
@@ -359,7 +360,7 @@ func (vm *VM) step() error {
 		}
 
 	case opJlt:
-		a, b, target, err := vm.read3(vm.ip)
+		a, b, target, err := vm.readJump3(vm.ip)
 		if err != nil {
 			return err
 		}
@@ -369,7 +370,7 @@ func (vm *VM) step() error {
 		}
 
 	case opJgt:
-		a, b, target, err := vm.read3(vm.ip)
+		a, b, target, err := vm.readJump3(vm.ip)
 		if err != nil {
 			return err
 		}
@@ -379,7 +380,7 @@ func (vm *VM) step() error {
 		}
 
 	case opJle:
-		a, b, target, err := vm.read3(vm.ip)
+		a, b, target, err := vm.readJump3(vm.ip)
 		if err != nil {
 			return err
 		}
@@ -389,7 +390,7 @@ func (vm *VM) step() error {
 		}
 
 	case opJge:
-		a, b, target, err := vm.read3(vm.ip)
+		a, b, target, err := vm.readJump3(vm.ip)
 		if err != nil {
 			return err
 		}
@@ -621,6 +622,9 @@ func sub64(a, b int64) (int64, bool) {
 func mul64(a, b int64) (int64, bool) {
 	if a == 0 || b == 0 {
 		return 0, false
+	}
+	if (a == -1 && b == math.MinInt64) || (b == -1 && a == math.MinInt64) {
+		return 0, true
 	}
 	r := a * b
 	return r, r/a != b

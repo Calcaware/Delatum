@@ -44,6 +44,8 @@ A flat array of signed 64-bit integers (Go `int64` in this implementation). The 
 (free memory starts after the last argv string - use alloc to grow the tape)
 ```
 
+`argv[0]` is the path used to start the program. The first user argument is the string after the first null terminator.
+
 ---
 
 ## Addressing
@@ -112,6 +114,8 @@ jle @0 @1 myloop    ; jump if @0 <= @1
 jge @0 @1 myloop    ; jump if @0 >= @1
 ```
 
+Jump targets are labels, literal byte offsets, or a cell or indirect operand that holds a byte offset.
+
 ### Halt
 ```
 halt                ; exit with code 0
@@ -165,6 +169,8 @@ include "mylib.twi"
 
 Assembler only. The contents of the included file are inlined at that point. Included files may include other files. Circular includes are a fatal error.
 
+Inlined instructions run in the order they appear, so place library routines after the program entry point or jump over them.
+
 ---
 
 ## Error Conditions
@@ -202,7 +208,7 @@ Associate `.tw` and `.twb` with `delatum.exe` in the registry.
 
 ## Examples
 
-See `example.tw` for a complete program demonstrating string output, file I/O, CLI args, and manual routines.
+See `example.tw` for a complete program demonstrating string output, file I/O, CLI args, and manual routines. Pass a filename as the first argument to have the example read and print it.
 
 See `example.twi` for a reusable include library with common string utilities.
 

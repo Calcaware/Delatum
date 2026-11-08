@@ -52,7 +52,7 @@ Each cell is a **segment**. The tape is the **tapeworm**.
 (free memory starts after the last argv string - use alloc to grow the tape)
 ```
 
-Free memory starts after the argc/argv area in this implementation; `alloc` is the recommended way to reserve working space at runtime.
+`argv[0]` is the path used to start the program. The first user argument is the string after the first null terminator. Free memory starts after the argc/argv area in this implementation; `alloc` is the recommended way to reserve working space at runtime.
 
 ---
 
@@ -94,7 +94,7 @@ One instruction per line. Arguments are literals, `@n`, or `@[@n]`. Comments beg
 include "file.twi"
 ```
 
-The assembler inlines the contents of `file.twi` at the point of the include directive. The interpreter never sees include directives - they are resolved entirely at assembly time.
+The assembler inlines the contents of `file.twi` at the point of the include directive. The interpreter never sees include directives - they are resolved entirely at assembly time. Inlined instructions run in the order they appear, so place library routines after the program entry point or jump over them.
 
 Included files may include other files. The assembler tracks the current include stack and throws an error if a circular include is detected:
 
@@ -165,7 +165,7 @@ jge @0 @1 myloop    ; jump if @0 >= @1
 
 Labels are assembler-time only. The assembler resolves them to byte offsets in the bytecode. They do not exist at runtime.
 
-`jmp @0` jumps to the byte offset stored in cell 0. This is how routines return - store the return offset in a cell before jumping, jump back to it at the end.
+`jmp @0` jumps to the byte offset stored in cell 0. This is how routines return - store the return offset in a cell before jumping, jump back to it at the end. The conditional jumps accept the same target forms as `jmp`.
 
 #### Halt & Special (`40-4F`)
 

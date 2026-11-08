@@ -1,5 +1,3 @@
-include "example.twi"
-
 ; Allocate buffer and write "Hi" via advancing pointer
 alloc 256 @210              ; @210 = buffer base (safe - below buffer)
 mov @210 @250               ; @250 = write pointer
@@ -15,3 +13,7 @@ set return_after @253
 jmp print_str
 label return_after
 halt 0
+
+; Library routines are included after the entry point so fall-through does not
+; execute them.
+include "example.twi"

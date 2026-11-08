@@ -144,6 +144,7 @@ func preprocess(path string, seen map[string]bool) ([]parsedLine, error) {
 		return nil, fmt.Errorf("circular include detected: %s", absPath)
 	}
 	seen[absPath] = true
+	defer delete(seen, absPath)
 
 	data, err := os.ReadFile(absPath)
 	if err != nil {
@@ -153,7 +154,6 @@ func preprocess(path string, seen map[string]bool) ([]parsedLine, error) {
 	dir := filepath.Dir(absPath)
 	rawLines := strings.Split(string(data), "\n")
 	var lines []parsedLine
-	var includes []parsedLine
 
 	for lineNum, raw := range rawLines {
 		raw = stripComment(raw)
@@ -175,7 +175,7 @@ func preprocess(path string, seen map[string]bool) ([]parsedLine, error) {
 			if err != nil {
 				return nil, fmt.Errorf("include at line %d: %w", n, err)
 			}
-			includes = append(includes, incLines...)
+			lines = append(lines, incLines...)
 			continue
 		}
 
@@ -210,7 +210,7 @@ func preprocess(path string, seen map[string]bool) ([]parsedLine, error) {
 		})
 	}
 
-	return append(lines, includes...), nil
+	return lines, nil
 }
 
 func stripComment(line string) string {

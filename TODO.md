@@ -12,7 +12,8 @@ Audit notes for the Delatum project. Items below are follow-ups found while revi
 - [x] Removed the "bytecode lives on the tape" model from the docs. The implementation keeps the bytecode in a separate code array, so the model was not restored.
 - [x] Documented that reaching the end of the bytecode stops the program with exit code 0 instead of raising a runtime error.
 - [x] Add tests that exercise every example in `README.md`, `delatum-spec.md`, and `doc.go`.
-- [ ] Mention the `@250`-`@255` scratch convention in `README.md` and `delatum-spec.md` as well, so it does not hide behind the `doc` command.
+- [x] Mention the `@250`-`@255` scratch convention in `README.md` and `delatum-spec.md` as well, so it does not hide behind the `doc` command.
+- [x] Documented that `argv[0]` is the program path and that the first user argument follows it.
 
 ## Implementation
 
@@ -24,6 +25,9 @@ Audit notes for the Delatum project. Items below are follow-ups found while revi
 - [x] Add a GitHub Actions workflow for build, vet, and test.
 - [x] Review the built-in "register" conventions (`@250`-`@255`) and ensure they are clearly documented as conventions only.
 - [x] Add tests for the command line paths (`build`, `run`, and running a `.twb` file) so the argument handling is covered as well.
+- [x] Inline includes at the include directive instead of appending them to the end of the file. Repeated includes of the same library are now allowed while true cycles still fail.
+- [x] Make conditional jumps read a cell or indirect target as a byte offset, matching `jmp`.
+- [x] Detect `mul` overflow when the minimum signed value is the second operand.
 
 ## Examples
 
@@ -31,6 +35,7 @@ Audit notes for the Delatum project. Items below are follow-ups found while revi
 - [x] Decided against static analysis for self-modifying bytecode. The code array is separate from the tape and no instruction can write to it.
 
 - [x] Verify and refresh `example.tw`, `example.twi`, and `test_inc.tw` after documentation changes. The stale `example.twb` was rebuilt from `example.tw`.
-- [ ] Keep the committed `example.twb` in sync with `example.tw` in a test, so the bytecode artifact cannot drift again.
+- [x] Keep the committed `example.twb` in sync with `example.tw` in a test, so the bytecode artifact cannot drift again. `TestCommittedExampleBytecode` assembles the source and compares the result with the committed file.
 - [ ] Add Windows and macOS CI runners.
 - [ ] Add a minimal "hello world" example that uses `halt`.
+- [ ] Add a test that runs `example.tw` with a filename argument and checks that the named file is read from `argv[1]`.
