@@ -266,6 +266,8 @@ add @0 1 @0             ; advance pointer
 jne @[@0] 0 loop        ; loop until null terminator
 ```
 
+The repository includes `hello.tw`, which is a complete version of this program with a trailing newline and an explicit `halt 0`.
+
 ### Read file to tape
 
 ```

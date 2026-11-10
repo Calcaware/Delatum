@@ -208,6 +208,8 @@ Associate `.tw` and `.twb` with `delatum.exe` in the registry.
 
 ## Examples
 
+See `hello.tw` for a minimal program that prints a greeting and exits with an explicit `halt`.
+
 See `example.tw` for a complete program demonstrating string output, file I/O, CLI args, and manual routines. Pass a filename as the first argument to have the example read and print it.
 
 See `example.twi` for a reusable include library with common string utilities.

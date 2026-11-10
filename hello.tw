@@ -1,0 +1,18 @@
+; hello.tw
+; Minimal Delatum program.
+;
+; Prints a greeting and exits with an explicit halt.
+;
+; Usage:
+;   delatum run hello.tw
+
+set "Hello, world!" @100
+set 100 @0
+
+label loop
+    putc 1 @[@0]
+    add @0 1 @0
+    jne @[@0] 0 loop
+
+putc 1 10
+halt 0
