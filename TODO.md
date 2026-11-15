@@ -38,5 +38,6 @@ Audit notes for the Delatum project. Items below are follow-ups found while revi
 - [x] Keep the committed `example.twb` in sync with `example.tw` in a test, so the bytecode artifact cannot drift again. `TestCommittedExampleBytecode` assembles the source and compares the result with the committed file.
 - [ ] Add Windows and macOS CI runners.
 - [x] Add a minimal "hello world" example that uses `halt`. `hello.tw` prints a greeting and exits explicitly, and `TestHelloWorldExample` checks the output and exit code.
-- [ ] Add a test that runs `example.tw` with a filename argument and checks that the named file is read from `argv[1]`.
+- [x] Add a test that runs `example.tw` with a filename argument and checks that the named file is read from `argv[1]`. `TestExampleReadsArgumentFile` checks the argv layout, the first argument pointer, the file contents, and the exit code while it runs the committed example.
 - [ ] Run `hello.tw` through the built command line tool in a test so the explicit `halt 0` exit status is covered from the CLI as well.
+- [ ] Cover the `example.tw` no-argument path in a test so the "No arguments given." message and the skipped file section stay verified.

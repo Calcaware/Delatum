@@ -216,6 +216,20 @@ See `example.twi` for a reusable include library with common string utilities.
 
 ---
 
+## Development
+
+Build, vet, and test the project with Go 1.26 or later:
+
+```bash
+go build ./...
+go vet ./...
+go test ./...
+```
+
+The tests assemble and run the examples in this file and `delatum-spec.md`, check the committed `example.twb` against `example.tw`, and exercise `hello.tw` and `example.tw` directly.
+
+---
+
 ## Bytecode Format
 
 `.twb` files begin with a 6-byte header:
