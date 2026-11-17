@@ -226,7 +226,7 @@ go vet ./...
 go test ./...
 ```
 
-The tests assemble and run the examples in this file and `delatum-spec.md`, check the committed `example.twb` against `example.tw`, and exercise `hello.tw` and `example.tw` directly.
+The tests assemble and run the examples in this file and `delatum-spec.md`, check the committed `example.twb` against `example.tw`, and exercise `hello.tw` and `example.tw` directly. They also build the command line tool and run `hello.tw` through it to check the greeting and the exit status.
 
 ---
 

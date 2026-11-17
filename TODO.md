@@ -28,6 +28,8 @@ Audit notes for the Delatum project. Items below are follow-ups found while revi
 - [x] Inline includes at the include directive instead of appending them to the end of the file. Repeated includes of the same library are now allowed while true cycles still fail.
 - [x] Make conditional jumps read a cell or indirect target as a byte offset, matching `jmp`.
 - [x] Detect `mul` overflow when the minimum signed value is the second operand.
+- [x] Report out-of-bounds tape writes from every instruction. Arithmetic, bitwise, `getc`, and `open` used to drop the write error and continue.
+- [ ] Exercise the built command line tool's `build` and direct `.twb` execution paths, not only its `run` path.
 
 ## Examples
 
@@ -39,5 +41,5 @@ Audit notes for the Delatum project. Items below are follow-ups found while revi
 - [ ] Add Windows and macOS CI runners.
 - [x] Add a minimal "hello world" example that uses `halt`. `hello.tw` prints a greeting and exits explicitly, and `TestHelloWorldExample` checks the output and exit code.
 - [x] Add a test that runs `example.tw` with a filename argument and checks that the named file is read from `argv[1]`. `TestExampleReadsArgumentFile` checks the argv layout, the first argument pointer, the file contents, and the exit code while it runs the committed example.
-- [ ] Run `hello.tw` through the built command line tool in a test so the explicit `halt 0` exit status is covered from the CLI as well.
+- [x] Run `hello.tw` through the built command line tool in a test so the explicit `halt 0` exit status is covered from the CLI as well. `TestHelloWorldCLI` builds the tool, checks the greeting, and checks the exit status; `TestCLIExitCodeFromHalt` checks a nonzero status too.
 - [ ] Cover the `example.tw` no-argument path in a test so the "No arguments given." message and the skipped file section stay verified.

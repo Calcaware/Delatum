@@ -203,6 +203,42 @@ halt 0
 	}
 }
 
+func TestOutOfBoundsWriteReportsError(t *testing.T) {
+	t.Run("add", func(t *testing.T) {
+		_, err := assembleAndRun(t, "set 1 @0\nadd @0 1 @999999\nhalt 0\n")
+		if err == nil || !strings.Contains(err.Error(), "tape address out of bounds") {
+			t.Fatalf("expected out of bounds error, got %v", err)
+		}
+	})
+
+	t.Run("shl", func(t *testing.T) {
+		_, err := assembleAndRun(t, "set 1 @0\nshl @0 1 @999999\nhalt 0\n")
+		if err == nil || !strings.Contains(err.Error(), "tape address out of bounds") {
+			t.Fatalf("expected out of bounds error, got %v", err)
+		}
+	})
+
+	t.Run("getc", func(t *testing.T) {
+		_, err := assembleAndRun(t, "getc 0 @999999\nhalt 0\n")
+		if err == nil || !strings.Contains(err.Error(), "tape address out of bounds") {
+			t.Fatalf("expected out of bounds error, got %v", err)
+		}
+	})
+
+	t.Run("open", func(t *testing.T) {
+		dir := t.TempDir()
+		path := filepath.Join(dir, "data.txt")
+		if err := os.WriteFile(path, []byte("x"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		src := fmt.Sprintf("set \"%s\" @100\nopen 0 @100 @999999\nhalt 0\n", path)
+		_, err := assembleAndRun(t, src)
+		if err == nil || !strings.Contains(err.Error(), "tape address out of bounds") {
+			t.Fatalf("expected out of bounds error, got %v", err)
+		}
+	})
+}
+
 func TestBareHalt(t *testing.T) {
 	vm, err := assembleAndRun(t, "halt\n")
 	if err != nil {

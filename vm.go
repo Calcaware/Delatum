@@ -220,7 +220,9 @@ func (vm *VM) step() error {
 		if overflow {
 			return fmt.Errorf("add: integer overflow")
 		}
-		vm.tape.Write(dst, r)
+		if err := vm.tape.Write(dst, r); err != nil {
+			return fmt.Errorf("add: %w", err)
+		}
 
 	case opSub:
 		a, b, dst, err := vm.read3(vm.ip)
@@ -231,7 +233,9 @@ func (vm *VM) step() error {
 		if overflow {
 			return fmt.Errorf("sub: integer overflow")
 		}
-		vm.tape.Write(dst, r)
+		if err := vm.tape.Write(dst, r); err != nil {
+			return fmt.Errorf("sub: %w", err)
+		}
 
 	case opMul:
 		a, b, dst, err := vm.read3(vm.ip)
@@ -242,7 +246,9 @@ func (vm *VM) step() error {
 		if overflow {
 			return fmt.Errorf("mul: integer overflow")
 		}
-		vm.tape.Write(dst, r)
+		if err := vm.tape.Write(dst, r); err != nil {
+			return fmt.Errorf("mul: %w", err)
+		}
 
 	case opDiv:
 		a, b, dst, err := vm.read3(vm.ip)
@@ -252,7 +258,9 @@ func (vm *VM) step() error {
 		if b == 0 {
 			return fmt.Errorf("div: division by zero")
 		}
-		vm.tape.Write(dst, a/b)
+		if err := vm.tape.Write(dst, a/b); err != nil {
+			return fmt.Errorf("div: %w", err)
+		}
 
 	case opMod:
 		a, b, dst, err := vm.read3(vm.ip)
@@ -262,7 +270,9 @@ func (vm *VM) step() error {
 		if b == 0 {
 			return fmt.Errorf("mod: division by zero")
 		}
-		vm.tape.Write(dst, a%b)
+		if err := vm.tape.Write(dst, a%b); err != nil {
+			return fmt.Errorf("mod: %w", err)
+		}
 
 	case opAbs:
 		v, err := vm.readValue(vm.ip + 1)
@@ -276,28 +286,36 @@ func (vm *VM) step() error {
 		if v < 0 {
 			v = -v
 		}
-		vm.tape.Write(dst, v)
+		if err := vm.tape.Write(dst, v); err != nil {
+			return fmt.Errorf("abs: %w", err)
+		}
 
 	case opAnd:
 		a, b, dst, err := vm.read3(vm.ip)
 		if err != nil {
 			return err
 		}
-		vm.tape.Write(dst, a&b)
+		if err := vm.tape.Write(dst, a&b); err != nil {
+			return fmt.Errorf("and: %w", err)
+		}
 
 	case opOr:
 		a, b, dst, err := vm.read3(vm.ip)
 		if err != nil {
 			return err
 		}
-		vm.tape.Write(dst, a|b)
+		if err := vm.tape.Write(dst, a|b); err != nil {
+			return fmt.Errorf("or: %w", err)
+		}
 
 	case opXor:
 		a, b, dst, err := vm.read3(vm.ip)
 		if err != nil {
 			return err
 		}
-		vm.tape.Write(dst, a^b)
+		if err := vm.tape.Write(dst, a^b); err != nil {
+			return fmt.Errorf("xor: %w", err)
+		}
 
 	case opNot:
 		v, err := vm.readValue(vm.ip + 1)
@@ -308,28 +326,36 @@ func (vm *VM) step() error {
 		if err != nil {
 			return fmt.Errorf("not: %w", err)
 		}
-		vm.tape.Write(dst, ^v)
+		if err := vm.tape.Write(dst, ^v); err != nil {
+			return fmt.Errorf("not: %w", err)
+		}
 
 	case opShl:
 		a, b, dst, err := vm.read3(vm.ip)
 		if err != nil {
 			return err
 		}
-		vm.tape.Write(dst, a<<uint64(b))
+		if err := vm.tape.Write(dst, a<<uint64(b)); err != nil {
+			return fmt.Errorf("shl: %w", err)
+		}
 
 	case opAshr:
 		a, b, dst, err := vm.read3(vm.ip)
 		if err != nil {
 			return err
 		}
-		vm.tape.Write(dst, a>>uint64(b))
+		if err := vm.tape.Write(dst, a>>uint64(b)); err != nil {
+			return fmt.Errorf("ashr: %w", err)
+		}
 
 	case opLshr:
 		a, b, dst, err := vm.read3(vm.ip)
 		if err != nil {
 			return err
 		}
-		vm.tape.Write(dst, int64(uint64(a)>>uint64(b)))
+		if err := vm.tape.Write(dst, int64(uint64(a)>>uint64(b))); err != nil {
+			return fmt.Errorf("lshr: %w", err)
+		}
 
 	case opJmp:
 		target, err := vm.readValue(vm.ip + 1)
@@ -454,9 +480,11 @@ func (vm *VM) step() error {
 		buf := make([]byte, 1)
 		_, err = vm.fds[fdi].Read(buf)
 		if err != nil {
-			vm.tape.Write(dst, -1)
-		} else {
-			vm.tape.Write(dst, int64(buf[0]))
+			if err := vm.tape.Write(dst, -1); err != nil {
+				return fmt.Errorf("getc: %w", err)
+			}
+		} else if err := vm.tape.Write(dst, int64(buf[0])); err != nil {
+			return fmt.Errorf("getc: %w", err)
 		}
 
 	case opOpen:
@@ -505,8 +533,11 @@ func (vm *VM) step() error {
 		}
 
 		fd := len(vm.fds)
+		if err := vm.tape.Write(handleDest, int64(fd)); err != nil {
+			f.Close()
+			return fmt.Errorf("open: %w", err)
+		}
 		vm.fds = append(vm.fds, f)
-		vm.tape.Write(handleDest, int64(fd))
 
 	case opClose:
 		fd, err := vm.readValue(vm.ip + 1)
