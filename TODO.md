@@ -29,7 +29,8 @@ Audit notes for the Delatum project. Items below are follow-ups found while revi
 - [x] Make conditional jumps read a cell or indirect target as a byte offset, matching `jmp`.
 - [x] Detect `mul` overflow when the minimum signed value is the second operand.
 - [x] Report out-of-bounds tape writes from every instruction. Arithmetic, bitwise, `getc`, and `open` used to drop the write error and continue.
-- [ ] Exercise the built command line tool's `build` and direct `.twb` execution paths, not only its `run` path.
+- [x] Exercise the built command line tool's `build` and direct `.twb` execution paths, not only its `run` path. `TestBuiltCLIBuildsBytecode` checks the written header and bytecode, then runs the file with an argument and a nonzero halt code.
+- [x] Reject malformed `.twb` files at the CLI instead of falling through to source assembly. `TestBuiltCLIRejectsInvalidBytecode` covers the error, and `isBytecodeFile` uses `io.ReadFull`.
 
 ## Examples
 

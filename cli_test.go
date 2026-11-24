@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -78,5 +79,73 @@ func TestCLIExitCodeFromHalt(t *testing.T) {
 	}
 	if stderr != "" {
 		t.Fatalf("unexpected stderr: %q", stderr)
+	}
+}
+
+// TestBuiltCLIBuildsBytecode checks that build writes the TWORM header and
+// the bytecode from Assemble, then runs the result through the direct
+// bytecode path with a user argument.
+func TestBuiltCLIBuildsBytecode(t *testing.T) {
+	bin := buildCLI(t)
+
+	dir := t.TempDir()
+	src := filepath.Join(dir, "prog.tw")
+	out := filepath.Join(dir, "prog.twb")
+	// Print argc as a digit so the direct run also checks argument passing.
+	program := "add @0 48 @1\nputc 1 @1\nhalt 7\n"
+	if err := os.WriteFile(src, []byte(program), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	stdout, stderr, code := runCLI(t, bin, "build", src)
+	if code != 0 {
+		t.Fatalf("build exit code is %d, want 0; stderr: %s", code, stderr)
+	}
+	if got, want := stdout, "built: "+out+"\n"; got != want {
+		t.Fatalf("build output is %q, want %q", got, want)
+	}
+	if stderr != "" {
+		t.Fatalf("unexpected stderr from build: %q", stderr)
+	}
+
+	got, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	bytecode, err := Assemble(src)
+	if err != nil {
+		t.Fatalf("assemble %s: %v", src, err)
+	}
+	want := append([]byte("TWORM\x01"), bytecode...)
+	if !bytes.Equal(got, want) {
+		t.Fatalf("built bytecode does not match Assemble output")
+	}
+
+	stdout, stderr, code = runCLI(t, bin, out, "extra")
+	if code != 7 {
+		t.Fatalf("bytecode exit code is %d, want 7; stderr: %s", code, stderr)
+	}
+	if got, want := stdout, "2"; got != want {
+		t.Fatalf("bytecode output is %q, want %q", got, want)
+	}
+	if stderr != "" {
+		t.Fatalf("unexpected stderr from bytecode run: %q", stderr)
+	}
+}
+
+func TestBuiltCLIRejectsInvalidBytecode(t *testing.T) {
+	bin := buildCLI(t)
+
+	path := filepath.Join(t.TempDir(), "broken.twb")
+	if err := os.WriteFile(path, []byte("not bytecode\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, stderr, code := runCLI(t, bin, path)
+	if code != 1 {
+		t.Fatalf("exit code is %d, want 1; stderr: %s", code, stderr)
+	}
+	if !strings.Contains(stderr, "invalid bytecode file") {
+		t.Fatalf("stderr does not report invalid bytecode: %q", stderr)
 	}
 }

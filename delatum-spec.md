@@ -28,6 +28,8 @@ delatum run source.tw [args...]    ; assemble in memory and run immediately, no 
 
 The `TWORM` header exists only in `.twb` files. In-memory assembly skips the header entirely - the bytecode goes straight into the code array.
 
+A `.twb` file is validated before it runs. A file with that extension but no valid `TWORM` header is reported as invalid bytecode instead of being assembled as source.
+
 ---
 
 ## The Tape

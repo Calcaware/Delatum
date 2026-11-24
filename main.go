@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -45,17 +46,12 @@ func main() {
 	default:
 		path := os.Args[1]
 
-		if isBytecodeFile(path) {
+		if isBytecodeFile(path) || strings.HasSuffix(path, ".twb") {
 			runBytecode(path, os.Args[2:])
 		} else if strings.HasSuffix(path, ".tw") || strings.HasSuffix(path, ".twi") {
 			runSource(path, os.Args[2:])
 		} else if info, err := os.Stat(path); err == nil && !info.IsDir() {
-			data, err := os.ReadFile(path)
-			if err == nil && len(data) >= 5 && string(data[:5]) == "TWORM" {
-				runBytecode(path, os.Args[2:])
-			} else {
-				runSource(path, os.Args[2:])
-			}
+			runSource(path, os.Args[2:])
 		} else {
 			fmt.Fprintf(os.Stderr, "delatum: unknown command %q\n", cmd)
 			usage()
@@ -83,7 +79,7 @@ func isBytecodeFile(path string) bool {
 	}
 	defer f.Close()
 	header := make([]byte, 5)
-	if _, err := f.Read(header); err != nil {
+	if _, err := io.ReadFull(f, header); err != nil {
 		return false
 	}
 	return string(header) == "TWORM"

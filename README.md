@@ -29,6 +29,8 @@ delatum program.twb [args...]        # run bytecode directly
 
 `.twi` files are include libraries. They are not normally entry points, but the tool will assemble and run one if asked.
 
+A `.twb` file must start with the `TWORM` header. The tool reports an error for malformed bytecode instead of trying to assemble it as source.
+
 ---
 
 ## The Tape
@@ -226,7 +228,7 @@ go vet ./...
 go test ./...
 ```
 
-The tests assemble and run the examples in this file and `delatum-spec.md`, check the committed `example.twb` against `example.tw`, and exercise `hello.tw` and `example.tw` directly. They also build the command line tool and run `hello.tw` through it to check the greeting and the exit status.
+The tests assemble and run the examples in this file and `delatum-spec.md`, check the committed `example.twb` against `example.tw`, and exercise `hello.tw` and `example.tw` directly. They also build the command line tool and run `hello.tw` through it to check the greeting and the exit status. The built tool is used to assemble a source file, run the resulting `.twb` directly, and reject a malformed `.twb`.
 
 ---
 
